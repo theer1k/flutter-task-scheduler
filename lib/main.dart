@@ -8,27 +8,27 @@ void main() => runApp(MaterialApp(
       home: Home(),
     ));
 
+Future<File> _getFile() async {
+  final Directory directory = await getApplicationDocumentsDirectory();
+  return File("${directory.path}/data.json");
+}
+
+Future<File> _saveData(List _toDoList) async {
+  String data = json.encode(_toDoList);
+  final file = await _getFile();
+  return file.writeAsString(data);
+}
+
+Future<String> _readData() async {
+  try {
+    final file = await _getFile();
+    return file.readAsString();
+  } catch (err) {
+    return null;
+  }
+}
+
 class Home extends StatefulWidget {
-  // Future<File> _getFile() async {
-  //   final Directory directory = await getApplicationDocumentsDirectory();
-  //   return File("${directory.path}/data.json");
-  // }
-
-  // Future<File> _saveData() async {
-  //   String data = json.encode(this._toDoList);
-  //   final file = await _getFile();
-  //   return file.writeAsString(data);
-  // }
-
-  // Future<String> _readData() async {
-  //   try {
-  //     final file = await _getFile();
-  //     return file.readAsString();
-  //   } catch (err) {
-  //     return null;
-  //   }
-  // }
-
   @override
   _HomeState createState() => _HomeState();
 }
@@ -38,6 +38,17 @@ class _HomeState extends State<Home> {
 
   List _toDoList = [];
 
+  @override
+  void initState() {
+    super.initState();
+
+    _readData().then((data) {
+      setState(() {
+        _toDoList = json.decode(data);
+      });
+    });
+  }
+
   void _addTodo() {
     setState(() {
       Map<String, dynamic> newToDo = Map();
@@ -45,6 +56,7 @@ class _HomeState extends State<Home> {
       _toDoController.text = "";
       newToDo["ok"] = false;
       _toDoList.add(newToDo);
+      _saveData(_toDoList);
     });
   }
 
@@ -94,6 +106,7 @@ class _HomeState extends State<Home> {
                     onChanged: (checked) {
                       setState(() {
                         _toDoList[index]["ok"] = checked;
+                        _saveData(_toDoList);
                       });
                     },
                   );
